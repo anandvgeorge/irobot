@@ -7,4 +7,22 @@
         </material>
     </gazebo>
 
+    <gazebo>
+		<plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+			<legacyMode>false</legacyMode>
+			<alwaysOn>true</alwaysOn>
+			<updateRate>20</updateRate>
+			<leftJoint>left_wheel_hinge</leftJoint>
+			<rightJoint>right_wheel_hinge</rightJoint>
+			<wheelSeparation>0.56</wheelSeparation>
+			<wheelDiameter>0.2</wheelDiameter>
+			<torque>20</torque>
+			<commandTopic>cmd_vel</commandTopic>
+			<odometryTopic>odom</odometryTopic>
+			<odometryFrame>odom</odometryFrame>
+			<robotBaseFrame>chassis</robotBaseFrame>
+		</plugin>
+	</gazebo>
+
+
 </robot>
