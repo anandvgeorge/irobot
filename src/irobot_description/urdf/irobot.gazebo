@@ -1,12 +1,6 @@
 <?xml version="1.0"?>
 <robot>
 
-    <gazebo reference="chassis">
-        <material>
-            Gazebo/Orange
-        </material>
-    </gazebo>
-
     <gazebo>
 		<plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
 			<legacyMode>false</legacyMode>
@@ -14,7 +8,7 @@
 			<updateRate>20</updateRate>
 			<leftJoint>left_wheel_hinge</leftJoint>
 			<rightJoint>right_wheel_hinge</rightJoint>
-			<wheelSeparation>0.56</wheelSeparation>
+			<wheelSeparation>0.6</wheelSeparation>
 			<wheelDiameter>0.2</wheelDiameter>
 			<torque>20</torque>
 			<commandTopic>cmd_vel</commandTopic>
@@ -24,5 +18,10 @@
 		</plugin>
 	</gazebo>
 
+    <gazebo reference="chassis">
+        <material>
+            Gazebo/Orange
+        </material>
+    </gazebo>
 
 </robot>
