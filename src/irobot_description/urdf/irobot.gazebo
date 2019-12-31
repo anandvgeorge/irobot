@@ -2,7 +2,7 @@
 <robot>
 
     <gazebo>
-		<plugin name="pid_diff_drive1" filename="libpid_diff_drive1.so" />
+		<plugin name="pid_diff_drive" filename="libpid_diff_drive.so" />
 	</gazebo>
 
     <gazebo reference="chassis">

@@ -123,7 +123,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(pid_diff_drive1 src/pid_diff_drive1.cc)
+add_library(pid_diff_drive src/pid_diff_drive.cc)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -146,7 +146,7 @@ add_library(pid_diff_drive1 src/pid_diff_drive1.cc)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(pid_diff_drive1 ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+target_link_libraries(pid_diff_drive ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 
 #############
