@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot>
 
-    <gazebo
+    <gazebo>
 		<plugin name="pid_diff_drive1" filename="libpid_diff_drive1.so" />
 	</gazebo>
 
