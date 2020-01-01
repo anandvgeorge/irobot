@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <robot name="irobot" xmlns:xacro="http://www.ros.org/wiki/xacro">
     
-    <xacro:include filename="$(find robot_description)/urdf/robot.gazebo" />
-	<xacro:include filename="$(find robot_description)/urdf/materials.xacro" />
-	<xacro:include filename="$(find robot_description)/urdf/macros.xacro" />
+    <xacro:include filename="$(find irobot_description)/urdf/irobot.gazebo" />
+	<xacro:include filename="$(find irobot_description)/urdf/materials.xacro" />
+	<xacro:include filename="$(find irobot_description)/urdf/macros.xacro" />
 
     <link name="chassis">
         <pose> 0 0 0.1 0 0 0 </pose>

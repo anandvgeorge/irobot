@@ -21,6 +21,6 @@
 	<param name="irobot_description" command="$(find xacro)/xacro.py '$(find irobot_description)/urdf/irobot.xacro'"/>
 
 	<node name="robot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
-	 args="-urdf -param irobot_description -model robot" />
+	 args="-urdf -param irobot_description -model irobot" />
 
 </launch>
