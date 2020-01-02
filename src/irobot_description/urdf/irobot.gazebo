@@ -2,7 +2,7 @@
 <robot>
 
     <gazebo>
-		<plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+		<!-- <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
 			<legacyMode>false</legacyMode>
 			<alwaysOn>true</alwaysOn>
 			<updateRate>20</updateRate>
@@ -15,7 +15,12 @@
 			<odometryTopic>odom</odometryTopic>
 			<odometryFrame>odom</odometryFrame>
 			<robotBaseFrame>chassis</robotBaseFrame>
-		</plugin>
+		</plugin> -->
+		<plugin name="diff_drive_pid" filename="libdiff_drive_pid.so" />
+			<!-- <velocityTopic>cmd_vel</velocityTopic>
+			<modelStateTopic>model_states</modelStateTopic>
+		</plugin> -->
+		<!-- <plugin name="test_plugin" filename="libtest_plugin.so" /> -->
 	</gazebo>
 
     <gazebo reference="chassis">
