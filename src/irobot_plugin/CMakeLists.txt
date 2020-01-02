@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   sensor_msgs
+  gazebo_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -37,6 +38,7 @@ catkin_package(
  geometry_msgs
  nav_msgs
  sensor_msgs
+ gazebo_msgs
  
  DEPENDS 
  roscpp 
@@ -63,6 +65,9 @@ target_link_libraries(pid_diff_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GA
 
 add_library(test_plugin src/test_plugin.cpp)
 target_link_libraries(test_plugin ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
+
+add_library(diff_drive_pid src/diff_drive_pid.cpp)
+target_link_libraries(diff_drive_pid ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 install(TARGETS
   pid_diff_drive
