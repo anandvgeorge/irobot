@@ -1,8 +1,3 @@
-// #include <gazebo/sensors/SensorManager.hh>
-// #include <gazebo/sensors/RaySensor.hh>
-// #include <nav_msgs/Odometry.h>
-// #include <geometry_msgs/Twist.h>
-// #include <sensor_msgs/JointState.h>
 #include "irobot_plugin/diff_drive_pid.h"
 
 #include <ignition/math/Angle.hh>
@@ -11,7 +6,7 @@
 #include <ignition/math/Vector3.hh>
 #include <sdf/sdf.hh>
 
-#include <ros/ros.h>
+#include <ros/console.h>
 
 using namespace gazebo;
 
@@ -93,16 +88,16 @@ void DiffDrivePID::UpdateChild()
 void DiffDrivePID::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-	ROS_INFO("Mutex locked for getPose");
+	ROS_DEBUG("Mutex locked for getPose");
 
 	// Get pose of the robot and target
 
 }
 
-void DiffDrivePID::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& cmd_msg )
+void DiffDrivePID::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-	ROS_INFO("Mutex locked for modelStateCallback");
+	ROS_DEBUG("Mutex locked for modelStateCallback");
     // x_ = cmd_msg->linear.x;
     // rot_ = cmd_msg->angular.z;
 

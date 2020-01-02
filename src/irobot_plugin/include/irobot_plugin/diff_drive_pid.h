@@ -3,18 +3,10 @@
 
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/physics/physics.hh>
-// #include <gazebo/physics/PhysicsTypes.hh>
-// #include <gazebo/sensors/SensorTypes.hh>
-// #include <gazebo/transport/TransportTypes.hh>
 #include <gazebo/transport/transport.hh>
 #include <gazebo/common/Time.hh>
 #include <gazebo/common/Plugin.hh>
-// #include <gazebo/common/Events.hh>
 
-// #include <nav_msgs/Odometry.h>
-// #include <geometry_msgs/TwistWithCovariance.h>
-// #include <geometry_msgs/PoseWithCovariance.h>
-// #include <tf/transform_broadcaster.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include "gazebo_msgs/ModelStates.h"
@@ -35,7 +27,7 @@ class DiffDrivePID : public ModelPlugin
 	private:
 		void getPose();
 		void publishVelocity();
-		void modelStateCallback( const gazebo_msgs::ModelStates::ConstPtr& cmd_msg );
+		void modelStateCallback( const gazebo_msgs::ModelStates::ConstPtr& _msg );
 		
 		/// Parameters
 		std::string node_namespace_;
