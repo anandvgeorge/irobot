@@ -14,8 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(gazebo REQUIRED)
+find_package(gazebo REQUIRED Boost REQUIRED COMPONENTS system)
+# find_package(gazebo REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -29,8 +29,14 @@ find_package(gazebo REQUIRED)
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES irobot_plugin
- CATKIN_DEPENDS gazebo_ros roscpp geometry_msgs
- DEPENDS roscpp gazebo_ros
+ CATKIN_DEPENDS 
+ gazebo_ros
+ roscpp
+ geometry_msgs
+ 
+ DEPENDS 
+ roscpp 
+ gazebo_ros
 )
 
 ###########
@@ -46,12 +52,16 @@ include
   ${GAZEBO_INCLUDE_DIRS}
 )
 
-include_directories(
-include
-  ${Boost_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
+add_library(pid_diff_drive src/pid_diff_drive.cpp)
+target_link_libraries(pid_diff_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
+
+install(TARGETS
+  pid_diff_drive
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
-add_library(pid_diff_drive src/pid_diff_drive.cpp)
-target_link_libraries(pid_diff_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
+install(DIRECTORY include/
+   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+)

@@ -11,7 +11,7 @@
 namespace gazebo
 {
 
-PIDDiffDrive::PIDDiffDrive() 
+PIDDiffDrive::PIDDiffDrive()
 {
     ROS_WARN("PID Plugin is loading");
 }
@@ -25,15 +25,14 @@ PIDDiffDrive::~PIDDiffDrive()
 // Load the controller
 void PIDDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf )
 {
-
     this->parent = _parent;
     gazebo_ros_ = GazeboRosPtr ( new GazeboRos ( _parent, _sdf, "PIDDiffDrive" ) );
     // Make sure the ROS node for Gazebo has already been initialized
     gazebo_ros_->isInitialized();
 
-    gazebo_ros_->getParameter<std::string> ( velocity_topic_, "velocityTopic", "cmd_vel" );
-    gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
-	gazebo_ros_->getParameter<double> ( update_rate_, "updateRate", 100.0 );
+    // gazebo_ros_->getParameter<std::string> ( velocity_topic_, "velocityTopic", "cmd_vel" );
+    // gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
+	// gazebo_ros_->getParameter<double> ( update_rate_, "updateRate", 100.0 );
     // gazebo_ros_->getParameterBoolean ( legacy_mode_, "legacyMode", true );
 
     // Initialize update rate stuff
@@ -48,19 +47,19 @@ void PIDDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf )
 	alive_ = true;
 
     // ROS: Subscribe to the model_states topic to get the pose of robot and target
-    ROS_INFO_NAMED("pid_diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
+    // ROS_INFO_NAMED("pid_diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
 
-    ros::SubscribeOptions so =
-        ros::SubscribeOptions::create<geometry_msgs::Twist>(model_state_topic_, 1,
-                boost::bind(&PIDDiffDrive::modelStateCallback, this, _1),
-                ros::VoidPtr(), &queue_);
+    // ros::SubscribeOptions so =
+    //     ros::SubscribeOptions::create<geometry_msgs::Twist>(model_state_topic_, 1,
+    //             boost::bind(&PIDDiffDrive::modelStateCallback, this, _1),
+    //             ros::VoidPtr(), &queue_);
 
-    model_state_subscriber_ = gazebo_ros_->node()->subscribe(so);
-    ROS_INFO_NAMED("pid_diff_drive", "%s: Subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
+    // model_state_subscriber_ = gazebo_ros_->node()->subscribe(so);
+    // ROS_INFO_NAMED("pid_diff_drive", "%s: Subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
 
 	// Publish twist msgs
-	velocity_publisher_ = gazebo_ros_->node()->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
-	ROS_INFO_NAMED("pid_diff_drive", "%s: Advertise velocity on %s ", gazebo_ros_->info(), velocity_topic_.c_str());
+	// velocity_publisher_ = gazebo_ros_->node()->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
+	// ROS_INFO_NAMED("pid_diff_drive", "%s: Advertise velocity on %s ", gazebo_ros_->info(), velocity_topic_.c_str());
 
     // start custom queue for diff drive
     this->callback_queue_thread_ =
@@ -68,7 +67,6 @@ void PIDDiffDrive::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf )
     // listen to the update event (broadcast every simulation iteration)
     this->update_connection_ =
         event::Events::ConnectWorldUpdateBegin ( boost::bind ( &PIDDiffDrive::UpdateChild, this ) );
-
 }
 
 
@@ -84,10 +82,10 @@ void PIDDiffDrive::UpdateChild()
 
     if ( seconds_since_last_update > update_period_ ) {
         // if (this->publish_tf_) publishOdometry ( seconds_since_last_update );
-		publishVelocity();
+		// publishVelocity();
 
         // Update the pose data from the simulator
-        getPose();
+        // getPose();
 
         // The main algorithm goes here. If needed, call other function(s)
 
@@ -114,28 +112,28 @@ void PIDDiffDrive::QueueThread()
     }
 }
 
-void PIDDiffDrive::getPose()
-{
-    boost::mutex::scoped_lock scoped_lock ( lock );
+// void PIDDiffDrive::getPose()
+// {
+//     boost::mutex::scoped_lock scoped_lock ( lock );
 
-	// Get pose of the robot and target
+// 	// Get pose of the robot and target
 
-}
+// }
 
-void PIDDiffDrive::modelStateCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg )
-{
-    boost::mutex::scoped_lock scoped_lock ( lock );
-    // x_ = cmd_msg->linear.x;
-    // rot_ = cmd_msg->angular.z;
+// void PIDDiffDrive::modelStateCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg )
+// {
+//     boost::mutex::scoped_lock scoped_lock ( lock );
+//     // x_ = cmd_msg->linear.x;
+//     // rot_ = cmd_msg->angular.z;
 
-	// Do something useful here
-}
+// 	// Do something useful here
+// }
 
-void PIDDiffDrive::publishVelocity ()
-{
+// void PIDDiffDrive::publishVelocity ()
+// {
 
-    velocity_publisher_.publish ( velocity_ );
-}
+//     velocity_publisher_.publish ( velocity_ );
+// }
 
 GZ_REGISTER_MODEL_PLUGIN ( PIDDiffDrive )
 }

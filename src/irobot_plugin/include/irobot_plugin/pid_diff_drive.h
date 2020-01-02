@@ -2,6 +2,7 @@
 #define PID_DIFFDRIVE_PLUGIN_HH
 
 // Gazebo
+#include <gazebo/gazebo.hh>
 #include <gazebo/common/common.hh>
 #include <gazebo/physics/physics.hh>
 #include <gazebo_plugins/gazebo_ros_utils.h>
@@ -42,15 +43,15 @@ class PIDDiffDrive : public ModelPlugin {
 		event::ConnectionPtr update_connection_;
 
 		// ROS STUFF
-		ros::Publisher velocity_publisher_;
-		ros::Subscriber model_state_subscriber_;
-		geometry_msgs::Twist velocity_;
+		// ros::Publisher velocity_publisher_;
+		// ros::Subscriber model_state_subscriber_;
+		// geometry_msgs::Twist velocity_;
 
-		boost::mutex lock;
+		// boost::mutex lock;
 
-		std::string velocity_topic_;
-		std::string model_state_topic_;
-		bool publish_twist_;
+		// std::string velocity_topic_;
+		// std::string model_state_topic_;
+		// bool publish_twist_;
 
 		// Custom Callback Queue
 		ros::CallbackQueue queue_;
@@ -58,7 +59,7 @@ class PIDDiffDrive : public ModelPlugin {
 		void QueueThread();
 
 		// DiffDrive stuff
-		void modelStateCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg);
+		// void modelStateCallback(const geometry_msgs::Twist::ConstPtr& cmd_msg);
 
 		bool alive_;
 
