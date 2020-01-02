@@ -13,7 +13,7 @@ namespace gazebo
 
 PIDDiffDrive::PIDDiffDrive()
 {
-    ROS_WARN("PID Plugin is loading");
+    // ROS_WARN("PID Plugin is loading");
 }
 
 // Destructor
