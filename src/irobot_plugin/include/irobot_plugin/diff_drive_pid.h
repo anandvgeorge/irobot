@@ -12,6 +12,8 @@
 #include <gazebo_msgs/ModelStates.h>
 #include <gazebo_msgs/GetModelState.h>
 
+#include <map>
+
 namespace gazebo
 {
 class DiffDrivePID : public ModelPlugin
@@ -45,12 +47,23 @@ class DiffDrivePID : public ModelPlugin
         geometry_msgs::Twist velocity_;
         ros::ServiceClient model_state_client_;
         gazebo_msgs::GetModelState model_state_srv_;
+        
+        struct model
+        {
+            std::string name;
+            geometry_msgs::Pose pose;
+        };
 
         physics::WorldPtr my_world_;
         physics::ModelPtr my_parent_;
 
-        std::string robot_name;
-        std::string target_name;
+        
+        // std::string robot_name;
+        // std::string target_name;
+        // geometry_msgs::Pose robot_pose_;
+        // geometry_msgs::Pose target_pose_;
+
+        std::map<int, gazebo::DiffDrivePID::model> objects;
 
         // Simulation time of the last update
         common::Time prev_update_time_;

@@ -10,6 +10,11 @@
 
 using namespace gazebo;
 
+enum {
+    ROBOT,
+    TARGET,
+};
+
 DiffDrivePID::DiffDrivePID() : gazebo_node_(new transport::Node())
 {
     this->spinner_thread_ = new boost::thread( boost::bind( &DiffDrivePID::spin, this) );
@@ -64,15 +69,24 @@ void DiffDrivePID::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf )
         ROS_INFO("DiffDrivePID: Advertise velocity on %s ", velocity_topic_.c_str());
 
     // Get then name of the parent model
-    robot_name = _sdf->GetParent()->Get<std::string>("name");
+    // robot_name = _sdf->GetParent()->Get<std::string>("name");
 
-    target_name = "cricket_ball";
+    // target_name = "cricket_ball";
+
+    gazebo::DiffDrivePID::model robot { _sdf->GetParent()->Get<std::string>("name") };
+    gazebo::DiffDrivePID::model target { "cricket_ball" };
+
+    // map objects
+    objects = {
+        { ROBOT , robot},
+        { TARGET , target}
+    };
 
     // Listen to the update event. This event is broadcast every
     // simulation iteration.
     this->updateConnection = event::Events::ConnectWorldUpdateBegin(boost::bind(&DiffDrivePID::UpdateChild, this));
 
-    ROS_INFO("Model name: %s", robot_name.c_str());
+    ROS_INFO("Model name: %s", robot.name.c_str());
     // gzdbg << "plugin model name: " << robot_name << "\n";
 }
 
@@ -90,22 +104,29 @@ void DiffDrivePID::UpdateChild()
 void DiffDrivePID::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_INFO("Mutex locked for getPose");
+    ROS_DEBUG("Mutex locked for getPose");
 
     // Get pose of the robot and target
+    for(auto& x : objects)
+    {
+        ROS_INFO("Get pose of %s", x.second.name.c_str());
 
-    // send request for ball state
-    model_state_srv_.request.model_name = target_name;
-    model_state_srv_.request.relative_entity_name = target_name;
-    if (model_state_client_.call(model_state_srv_))
-    {
-        ROS_INFO("Got data for %s", model_state_srv_.response.header.frame_id.c_str());
+        // send request for model_state
+        model_state_srv_.request.model_name = x.second.name;
+        model_state_srv_.request.relative_entity_name = x.second.name;
+        if (model_state_client_.call(model_state_srv_))
+        {
+            ROS_INFO("Got data for %s", model_state_srv_.response.header.frame_id.c_str());
+
+            // Save pose
+            // model
+
+        }
+        else
+        {
+            ROS_ERROR("Failed to call service to get state of %s", model_state_srv_.request.model_name.c_str());
+        }
     }
-    else
-    {
-        ROS_ERROR("Failed to call service to get state of %s", model_state_srv_.request.model_name.c_str());
-    }
-    
     
 }
 
