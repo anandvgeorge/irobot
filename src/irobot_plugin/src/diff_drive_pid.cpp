@@ -5,6 +5,7 @@
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Vector3.hh>
 #include <sdf/sdf.hh>
+#include <tf/tf.h>
 
 #include <ros/console.h>
 
@@ -99,6 +100,15 @@ void DiffDrivePID::UpdateChild()
     getPose();
 
     // The main algorithm goes here. If needed, call other function(s)
+    tf::Quaternion q(
+        objects[ROBOT].pose.orientation.x,
+        objects[ROBOT].pose.orientation.y,
+        objects[ROBOT].pose.orientation.z,
+        objects[ROBOT].pose.orientation.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
 }
 
 void DiffDrivePID::getPose()
@@ -109,18 +119,18 @@ void DiffDrivePID::getPose()
     // Get pose of the robot and target
     for(auto& x : objects)
     {
-        ROS_INFO("Get pose of %s", x.second.name.c_str());
+        ROS_DEBUG("Get pose of %s", x.second.name.c_str());
 
         // send request for model_state
         model_state_srv_.request.model_name = x.second.name;
-        model_state_srv_.request.relative_entity_name = x.second.name;
+        // model_state_srv_.request.relative_entity_name = x.second.name;
         if (model_state_client_.call(model_state_srv_))
         {
-            ROS_INFO("Got data for %s", model_state_srv_.response.header.frame_id.c_str());
+            ROS_DEBUG("Got data for %s", model_state_srv_.request.model_name.c_str());
 
             // Save pose
-            // model
-
+            // Model is accessed by 'x.second' -> mapped to 'objects'
+            x.second.pose = model_state_srv_.response.pose;
         }
         else
         {
@@ -128,6 +138,7 @@ void DiffDrivePID::getPose()
         }
     }
     
+    // ROS_INFO("The robot is at %f, %f, heading towards %f and the ball at %f, %f", objects[ROBOT].pose.position.x, objects[ROBOT].pose.position.y, yaw, objects[TARGET].pose.position.x, objects[TARGET].pose.position.y );
 }
 
 // void DiffDrivePID::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
