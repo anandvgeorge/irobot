@@ -60,18 +60,11 @@ include
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
 
-add_library(pid_diff_drive src/pid_diff_drive.cpp)
-target_link_libraries(pid_diff_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
-
-add_library(test_plugin src/test_plugin.cpp)
-target_link_libraries(test_plugin ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
-
 add_library(diff_drive_pid src/diff_drive_pid.cpp)
 target_link_libraries(diff_drive_pid ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 install(TARGETS
-  pid_diff_drive
-  test_plugin
+  diff_drive_pid
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
