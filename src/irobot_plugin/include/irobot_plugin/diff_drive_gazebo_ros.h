@@ -10,12 +10,10 @@
 
 // ROS
 #include <ros/ros.h>
-// #include <tf/transform_broadcaster.h>
-// #include <tf/transform_listener.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
-// #include <nav_msgs/Odometry.h>
-// #include <sensor_msgs/JointState.h>
+#include <gazebo_msgs/ModelStates.h>
+#include <gazebo_msgs/GetModelState.h>
 
 // Custom Callback Queue
 #include <ros/callback_queue.h>
@@ -53,7 +51,9 @@ namespace gazebo {
     //   void publishWheelTF(); /// publishes the wheel tf's
     //   void publishWheelJointState();
     //   void UpdateOdometryEncoder();
-
+      void getPose();
+      void publishVelocity();
+      void modelStateCallback( const gazebo_msgs::ModelStates::ConstPtr& _msg );
 
       GazeboRosPtr gazebo_ros_;
       physics::ModelPtr parent;
@@ -76,6 +76,16 @@ namespace gazebo {
     //   ros::Publisher joint_state_publisher_;
     //   nav_msgs::Odometry odom_;
     //   std::string tf_prefix_;
+      ros::ServiceClient model_state_client_;
+      gazebo_msgs::GetModelState model_state_srv_;
+
+      struct model
+        {
+            std::string name;
+            geometry_msgs::Pose pose;
+        };
+
+      std::map<int, gazebo::DiffDriveGazeboRos::model> objects;
 
       boost::mutex lock;
 
@@ -88,6 +98,7 @@ namespace gazebo {
     //   bool legacy_mode_;
 
       std::string velocity_topic_;
+      std::string target_model_;
 
       // Custom Callback Queue
       ros::CallbackQueue queue_;
