@@ -53,23 +53,27 @@ void DiffDrivePID::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf )
     rosnode_->param<std::string> ( "velocityTopic", velocity_topic_, "cmd_vel" );
     rosnode_->param<std::string> ( "modelStateTopic", model_state_topic_, "gazebo/model_states" );
 
-    model_state_subscriber_ = rosnode_->subscribe(model_state_topic_, 1, &DiffDrivePID::modelStateCallback, this );
-    if ( model_state_subscriber_ )
-        ROS_INFO("DiffDrivePID: Subscribe to %s", model_state_topic_.c_str());
+    // model_state_subscriber_ = rosnode_->subscribe(model_state_topic_, 1, &DiffDrivePID::modelStateCallback, this );
+    // if ( model_state_subscriber_ )
+    //     ROS_INFO("DiffDrivePID: Subscribe to %s", model_state_topic_.c_str());
+
+    model_state_client_ = rosnode_->serviceClient<gazebo_msgs::GetModelState>("gazebo/get_model_state");
 
     velocity_publisher_ = rosnode_->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
     if ( velocity_publisher_ )
         ROS_INFO("DiffDrivePID: Advertise velocity on %s ", velocity_topic_.c_str());
 
     // Get then name of the parent model
-    std::string model_name = _sdf->GetParent()->Get<std::string>("name");
+    robot_name = _sdf->GetParent()->Get<std::string>("name");
+
+    target_name = "cricket_ball";
 
     // Listen to the update event. This event is broadcast every
     // simulation iteration.
     this->updateConnection = event::Events::ConnectWorldUpdateBegin(boost::bind(&DiffDrivePID::UpdateChild, this));
 
-    ROS_INFO("Model name: %s", model_name.c_str());
-    // gzdbg << "plugin model name: " << model_name << "\n";
+    ROS_INFO("Model name: %s", robot_name.c_str());
+    // gzdbg << "plugin model name: " << robot_name << "\n";
 }
 
 void DiffDrivePID::UpdateChild()
@@ -86,21 +90,35 @@ void DiffDrivePID::UpdateChild()
 void DiffDrivePID::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG("Mutex locked for getPose");
+    ROS_INFO("Mutex locked for getPose");
 
     // Get pose of the robot and target
 
+    // send request for ball state
+    model_state_srv_.request.model_name = target_name;
+    model_state_srv_.request.relative_entity_name = target_name;
+    if (model_state_client_.call(model_state_srv_))
+    {
+        ROS_INFO("Got data for %s", model_state_srv_.response.header.frame_id.c_str());
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service to get state of %s", model_state_srv_.request.model_name.c_str());
+    }
+    
+    
 }
 
-void DiffDrivePID::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
-{
-    boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG("Mutex locked for modelStateCallback");
-    // x_ = cmd_msg->linear.x;
-    // rot_ = cmd_msg->angular.z;
+// void DiffDrivePID::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
+// {
+//     boost::mutex::scoped_lock scoped_lock ( lock );
+//     ROS_DEBUG("Mutex locked for modelStateCallback");
+//     // x_ = cmd_msg->linear.x;
+//     // rot_ = cmd_msg->angular.z;
 
-    // Do something useful here
-}
+//     // Do something useful here
+//     // ROS_INFO("Hope this msg gets printed %s", _msg.c_str());
+// }
 
 void DiffDrivePID::publishVelocity ()
 {

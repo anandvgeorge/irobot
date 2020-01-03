@@ -9,7 +9,8 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include "gazebo_msgs/ModelStates.h"
+#include <gazebo_msgs/ModelStates.h>
+#include <gazebo_msgs/GetModelState.h>
 
 namespace gazebo
 {
@@ -40,11 +41,16 @@ class DiffDrivePID : public ModelPlugin
         //ros::Service operating_mode_srv_;
 
         ros::Publisher velocity_publisher_;
-        ros::Subscriber model_state_subscriber_;
+        // ros::Subscriber model_state_subscriber_;
         geometry_msgs::Twist velocity_;
+        ros::ServiceClient model_state_client_;
+        gazebo_msgs::GetModelState model_state_srv_;
 
         physics::WorldPtr my_world_;
         physics::ModelPtr my_parent_;
+
+        std::string robot_name;
+        std::string target_name;
 
         // Simulation time of the last update
         common::Time prev_update_time_;
