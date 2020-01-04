@@ -43,15 +43,20 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
 
     alive_ = true;
 
-    // ROS: Subscribe to the velocity command topic (usually "cmd_vel")
     ROS_INFO_NAMED("diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
 
+    // Model state subscriber
     ros::SubscribeOptions so =
         ros::SubscribeOptions::create<gazebo_msgs::ModelStates>(model_state_topic_, 1,
                 boost::bind(&DiffDriveGazeboRos::modelStateCallback, this, _1),
                 ros::VoidPtr(), &queue_);
 
     model_state_subscriber_ = gazebo_ros_->node()->subscribe(so);
+    if ( model_state_subscriber_ )
+        ROS_INFO_NAMED("diff_drive", "%s: Subscribed to %s ", gazebo_ros_->info(), model_state_topic_.c_str());
+    else
+        ROS_ERROR_NAMED("diff_drive", "%s: Cannot subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
+    
 
     // Velocity Publisher
     velocity_publisher_ = gazebo_ros_->node()->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
@@ -72,10 +77,10 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     gazebo::DiffDriveGazeboRos::model target { target_model_ };
 
     // map objects
-    objects = {
-        { ROBOT , robot},
-        { TARGET , target}
-    };
+    // objects = {
+    //     { ROBOT , robot},
+    //     { TARGET , target}
+    // };
     
     // start custom queue for diff drive
     this->callback_queue_thread_ =
@@ -110,9 +115,20 @@ void DiffDriveGazeboRos::UpdateChild()
 void DiffDriveGazeboRos::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_INFO("Mutex locked for getPose");
+    ROS_DEBUG("Mutex locked for getPose");
 
     // Get pose of the robot and target
+
+    // std::vector<std::string> name = msg_.name;
+    // std::vector<geometry_msgs::Pose> pose = msg_.pose;
+
+    // for (auto [model_, index_] : model_index)
+    // {
+    //     if (model_ != "ground_plane")
+    //     {
+    //         ROS_INFO_STREAM ("index" << model_index())
+    //     }
+    // }
   
 }
 
@@ -125,12 +141,32 @@ void DiffDriveGazeboRos::publishVelocity ()
 void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_INFO("Mutex locked for modelStateCallback");
-    // x_ = cmd_msg->linear.x;
-    // rot_ = cmd_msg->angular.z;
+    ROS_DEBUG("Mutex locked for modelStateCallback");
 
-    // Do something useful here
-    // ROS_INFO("Hope this msg gets printed %s", _msg.c_str());
+    msg_ = *_msg;
+    
+    // ROS_INFO_STREAM ("test input message" << name.at(1));
+    
+    // Map model index
+    if (model_index.empty())
+    {
+        std::vector<std::string> name = msg_.name;
+
+        // Define the model_index map to map indexes
+        for (int i=0; i<name.size(); i++)
+        {
+            const auto [var, success] = model_index.insert( {name[i], i});
+            if (!success)
+                ROS_ERROR ("Model index mapping failed");
+        }
+
+        // Print the map
+        ROS_INFO_STREAM ("Model index mapping :");
+        for (auto [model_, index_] : model_index)
+        {
+            ROS_INFO_STREAM ("\t" << model_ << " : " << index_);
+        }
+    } 
 }
 
 void DiffDriveGazeboRos::Reset()

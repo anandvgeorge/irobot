@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>irobot_plugin</name>
-  <version>0.0.0</version>
+  <version>0.1.0</version>
   <description>The irobot_plugin package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="anand@todo.todo">anand</maintainer>
+  <maintainer email="anandvgeorge@gmail.com">Anand George</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -58,8 +58,8 @@
 
   <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>sensor_msgs</depend>
+  <!-- <depend>nav_msgs</depend> -->
+  <!-- <depend>sensor_msgs</depend> -->
   <depend>gazebo_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->

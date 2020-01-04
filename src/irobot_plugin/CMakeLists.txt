@@ -11,8 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   gazebo_ros
   roscpp
   geometry_msgs
-  nav_msgs
-  sensor_msgs
   gazebo_msgs
 )
 
@@ -36,8 +34,6 @@ catkin_package(
  gazebo_ros
  roscpp
  geometry_msgs
- nav_msgs
- sensor_msgs
  gazebo_msgs
  
  DEPENDS 
