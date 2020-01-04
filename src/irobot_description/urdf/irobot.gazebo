@@ -18,6 +18,7 @@
 		</plugin> -->
 		<plugin name="diff_drive_gazebo_ros" filename="libdiff_drive_gazebo_ros.so" >
 			<velocityTopic>cmd_vel</velocityTopic>
+			<modelStateTopic>gazebo/model_states</modelStateTopic>
 		</plugin>
 	</gazebo>
 

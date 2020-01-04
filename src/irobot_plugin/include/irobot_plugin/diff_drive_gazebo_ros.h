@@ -70,6 +70,7 @@ namespace gazebo {
 
       // ROS STUFF
       ros::Publisher velocity_publisher_;
+      ros::Subscriber model_state_subscriber_;
     //   ros::Subscriber cmd_vel_subscriber_;
     //   boost::shared_ptr<tf::TransformBroadcaster> transform_broadcaster_;
     //   sensor_msgs::JointState joint_state_;
@@ -98,6 +99,7 @@ namespace gazebo {
     //   bool legacy_mode_;
 
       std::string velocity_topic_;
+      std::string model_state_topic_;
       std::string target_model_;
 
       // Custom Callback Queue

@@ -38,19 +38,20 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     gazebo_ros_->isInitialized();
 
     gazebo_ros_->getParameter<std::string> ( velocity_topic_, "velocityTopic", "cmd_vel" );
+    gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
     gazebo_ros_->getParameter<std::string> ( target_model_, "targetModel", "cricket_ball" );
 
     alive_ = true;
 
-    // // ROS: Subscribe to the velocity command topic (usually "cmd_vel")
-    // ROS_INFO_NAMED("diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), command_topic_.c_str());
+    // ROS: Subscribe to the velocity command topic (usually "cmd_vel")
+    ROS_INFO_NAMED("diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
 
-    // ros::SubscribeOptions so =
-    //     ros::SubscribeOptions::create<geometry_msgs::Twist>(command_topic_, 1,
-    //             boost::bind(&DiffDriveGazeboRos::cmdVelCallback, this, _1),
-    //             ros::VoidPtr(), &queue_);x
+    ros::SubscribeOptions so =
+        ros::SubscribeOptions::create<gazebo_msgs::ModelStates>(model_state_topic_, 1,
+                boost::bind(&DiffDriveGazeboRos::modelStateCallback, this, _1),
+                ros::VoidPtr(), &queue_);
 
-    // cmd_vel_subscriber_ = gazebo_ros_->node()->subscribe(so);
+    model_state_subscriber_ = gazebo_ros_->node()->subscribe(so);
 
     // Velocity Publisher
     velocity_publisher_ = gazebo_ros_->node()->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
@@ -59,12 +60,12 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     else
         ROS_ERROR_NAMED("diff_drive", "%s: Cannot publish data over %s", gazebo_ros_->info(), velocity_topic_.c_str());
     
-    // ROS Service client for model states
-    model_state_client_ = gazebo_ros_->node()->serviceClient<gazebo_msgs::GetModelState>("gazebo/get_model_state");
-    if ( model_state_client_ )
-        ROS_INFO_NAMED("diff_drive", "%s: Connected to ROSserice server %s ", gazebo_ros_->info(), "gazebo/get_model_state");
-    else
-        ROS_ERROR_NAMED("diff_drive", "%s: Cannot connect to  ROSserice server %s", gazebo_ros_->info(), "gazebo/get_model_state");
+    // // ROS Service client for model states
+    // model_state_client_ = gazebo_ros_->node()->serviceClient<gazebo_msgs::GetModelState>("gazebo/get_model_state");
+    // if ( model_state_client_ )
+    //     ROS_INFO_NAMED("diff_drive", "%s: Connected to ROSserice server %s ", gazebo_ros_->info(), "gazebo/get_model_state");
+    // else
+    //     ROS_ERROR_NAMED("diff_drive", "%s: Cannot connect to  ROSserice server %s", gazebo_ros_->info(), "gazebo/get_model_state");
 
 
     gazebo::DiffDriveGazeboRos::model robot { _sdf->GetParent()->Get<std::string>("name") };
@@ -109,37 +110,27 @@ void DiffDriveGazeboRos::UpdateChild()
 void DiffDriveGazeboRos::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG("Mutex locked for getPose");
+    ROS_INFO("Mutex locked for getPose");
 
     // Get pose of the robot and target
-    for(auto& x : objects)
-    {
-        ROS_DEBUG("Get pose of %s", x.second.name.c_str());
-
-        // send request for model_state
-        model_state_srv_.request.model_name = x.second.name;
-        // model_state_srv_.request.relative_entity_name = x.second.name;
-        if (model_state_client_.call(model_state_srv_))
-        {
-            ROS_DEBUG("Got data for %s", model_state_srv_.request.model_name.c_str());
-
-            // Save pose
-            // Model is accessed by 'x.second' -> mapped to 'objects'
-            x.second.pose = model_state_srv_.response.pose;
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service to get state of %s", model_state_srv_.request.model_name.c_str());
-        }
-    }
-    
-    // ROS_INFO("The robot is at %f, %f, heading towards %f and the ball at %f, %f", objects[ROBOT].pose.position.x, objects[ROBOT].pose.position.y, yaw, objects[TARGET].pose.position.x, objects[TARGET].pose.position.y );
+  
 }
 
 void DiffDriveGazeboRos::publishVelocity ()
 {
 
     // velocity_publisher_.publish ( velocity_ );
+}
+
+void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
+{
+    boost::mutex::scoped_lock scoped_lock ( lock );
+    ROS_INFO("Mutex locked for modelStateCallback");
+    // x_ = cmd_msg->linear.x;
+    // rot_ = cmd_msg->angular.z;
+
+    // Do something useful here
+    // ROS_INFO("Hope this msg gets printed %s", _msg.c_str());
 }
 
 void DiffDriveGazeboRos::Reset()
