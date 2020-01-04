@@ -62,7 +62,7 @@ namespace gazebo {
           geometry_msgs::Pose pose;
         };
 
-      std::map<int, gazebo::DiffDriveGazeboRos::model> objects;
+      std::vector <gazebo::DiffDriveGazeboRos::model> objects;
       std::map <std::string, int> model_index;
 
       boost::mutex lock;
