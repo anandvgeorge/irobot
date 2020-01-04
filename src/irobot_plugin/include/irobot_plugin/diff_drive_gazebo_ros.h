@@ -25,9 +25,6 @@
 
 namespace gazebo {
 
-//   class Joint;
-//   class Entity;
-
   class DiffDriveGazeboRos : public ModelPlugin {
 
     public:
@@ -60,31 +57,25 @@ namespace gazebo {
         {
           std::string name;
           geometry_msgs::Pose pose;
+          geometry_msgs::Pose2D pos;
         };
 
-      std::vector <gazebo::DiffDriveGazeboRos::model> objects;
+      std::vector <DiffDriveGazeboRos::model> models;
       std::map <std::string, int> model_index;
 
       boost::mutex lock;
 
       std::string velocity_topic_;
       std::string model_state_topic_;
-      std::string target_model_;
+      std::string robot;
+      std::string target;
 
       // Custom Callback Queue
       ros::CallbackQueue queue_;
       boost::thread callback_queue_thread_;
       void QueueThread();
 
-    //   double x_;
-    //   double rot_;
       bool alive_;
-
-    //   // Update Rate
-    //   double update_rate_;
-    //   double update_period_;
-    //   common::Time last_update_time_;
-
   };
 
 }

@@ -37,9 +37,11 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     // Make sure the ROS node for Gazebo has already been initialized
     gazebo_ros_->isInitialized();
 
+    robot = _sdf->GetParent()->Get<std::string>("name");
+
     gazebo_ros_->getParameter<std::string> ( velocity_topic_, "velocityTopic", "cmd_vel" );
     gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
-    gazebo_ros_->getParameter<std::string> ( target_model_, "targetModel", "cricket_ball" );
+    gazebo_ros_->getParameter<std::string> ( target, "targetModel", "cricket_ball" );
 
     alive_ = true;
 
@@ -57,30 +59,12 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     else
         ROS_ERROR_NAMED("diff_drive", "%s: Cannot subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
     
-
     // Velocity Publisher
     velocity_publisher_ = gazebo_ros_->node()->advertise<geometry_msgs::Twist>(velocity_topic_, 1);
     if ( velocity_publisher_ )
         ROS_INFO_NAMED("diff_drive", "%s: Publish velocity over %s ", gazebo_ros_->info(), velocity_topic_.c_str());
     else
         ROS_ERROR_NAMED("diff_drive", "%s: Cannot publish data over %s", gazebo_ros_->info(), velocity_topic_.c_str());
-    
-    // // ROS Service client for model states
-    // model_state_client_ = gazebo_ros_->node()->serviceClient<gazebo_msgs::GetModelState>("gazebo/get_model_state");
-    // if ( model_state_client_ )
-    //     ROS_INFO_NAMED("diff_drive", "%s: Connected to ROSserice server %s ", gazebo_ros_->info(), "gazebo/get_model_state");
-    // else
-    //     ROS_ERROR_NAMED("diff_drive", "%s: Cannot connect to  ROSserice server %s", gazebo_ros_->info(), "gazebo/get_model_state");
-
-
-    // gazebo::DiffDriveGazeboRos::model robot {_sdf->GetParent()->Get<std::string>("name")};
-    // gazebo::DiffDriveGazeboRos::model target {target_model_};
-
-    // map objects
-    // objects = {
-    //     { ROBOT , robot},
-    //     { TARGET , target}
-    // };
     
     // start custom queue for diff drive
     this->callback_queue_thread_ =
@@ -100,45 +84,58 @@ void DiffDriveGazeboRos::UpdateChild()
     // Update the pose data from the simulator
     getPose();
 
-    // The main algorithm goes here. If needed, call other function(s)
-    tf::Quaternion q(
-        objects[ROBOT].pose.orientation.x,
-        objects[ROBOT].pose.orientation.y,
-        objects[ROBOT].pose.orientation.z,
-        objects[ROBOT].pose.orientation.w);
-    tf::Matrix3x3 m(q);
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
-    ROS_INFO ("Anything happening here?");
-
 }
 
 void DiffDriveGazeboRos::getPose()
 {
-    // boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_INFO ("Mutex locked for getPose");
+    boost::mutex::scoped_lock scoped_lock ( lock );
+    ROS_DEBUG ("Mutex locked for getPose");
 
     // Get pose of the robot and target
+    std::vector<geometry_msgs::Pose> pose = msg_.pose;
 
-    // std::vector<std::string> name = msg_.name;
-    // std::vector<geometry_msgs::Pose> pose = msg_.pose;
+    if (!models.empty())
+    {
+        // ROS_INFO_STREAM ("====== Get pose for each model ======");
+        for (int i = 0; i < models.size(); i++)
+        {
+            // ROS_INFO_STREAM ("Get pose of " << model_.name);
 
-    // if (!model_index.empty())
-    // {
-    //     ROS_INFO_STREAM ("Get pose for each model");
-    //     // for (auto [model_, index_] : model_index)
-    //     // {
-    //     //     ROS_INFO_STREAM ("Get pose of " << model_);
+            // Iterator for search
+            auto search = model_index.find(models[i].name);
+            if (search != model_index.end())
+            {
+                // ROS_INFO_STREAM ("index of " << models[i].name << " is " << search->second);
+            }
+            else
+            {
+                ROS_ERROR_STREAM ("Model index not mapped");
+            }
+            
+            // Get pose
+            models[i].pose = pose.at(search->second);
 
-    //     //     // Iterator for search
-    //     //     // auto search = model_index.find(model_.name);
-    //     //     // if (search != model_index.end())
-    //     //     // {
-    //     //     //     // model_.pose = 
-    //     //     //     ROS_INFO_STREAM ("index of " << model_.name << " is " << search->   second);
-    //     //     // }
-    //     // }
-    // }
+            // Calculate yaw and assign to Pose2D pos
+            tf::Quaternion q(
+                models[i].pose.orientation.x,
+                models[i].pose.orientation.y,
+                models[i].pose.orientation.z,
+                models[i].pose.orientation.w);
+            tf::Matrix3x3 m(q);
+            double roll, pitch, yaw;
+            m.getRPY(roll, pitch, yaw);
+
+            models[i].pos.x = models[i].pose.orientation.x;
+            models[i].pos.y = models[i].pose.orientation.y;
+            models[i].pos.theta = yaw;
+        }
+    }
+
+    // Print pose of each model
+    for (auto model_ : models)
+    {
+        ROS_INFO_STREAM ("Pose of " << model_.name << " is " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+    }
   
 }
 
@@ -150,33 +147,42 @@ void DiffDriveGazeboRos::publishVelocity ()
 
 void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
 {
-    // boost::mutex::scoped_lock scoped_lock ( lock );
-    // ROS_INFO ("Mutex locked for modelStateCallback");
+    boost::mutex::scoped_lock scoped_lock ( lock );
+    ROS_DEBUG ("Mutex locked for modelStateCallback");
 
-    // msg_ = *_msg;
-    
-    // ROS_INFO_STREAM ("test input message" << name.at(1));
+    msg_ = *_msg;
     
     // Map model index
-    // if (model_index.empty())
-    // {
-        // std::vector<std::string> name = msg_.name;
+    if (models.empty()) // Change the logic to check for extra models from the gazebo (there will be extra spawning!)
+    {
+        std::vector<std::string> name = msg_.name;
+        auto it = models.begin(); // iterator
 
-        // // Define the model_index map to map indexes
-        // for (int i=0; i<name.size(); i++)
-        // {
-        //     const auto [var, success] = model_index.insert( {name[i], i});
-        //     if (!success)
-        //         ROS_ERROR ("Model index mapping failed");
-        // }
+        // Define the model_index map to map indexes
+        for (int i=0; i<name.size(); i++)
+        {
+            const auto [var, success] = model_index.insert( {name[i], i} );
+            if (!success)
+                ROS_ERROR ("Model index mapping failed");
+            
+            // Add models to the models vector
+            it = models.insert(it, {name[i]});
+        }
 
-        // // Print the map
-        // ROS_INFO_STREAM ("Model index mapping :");
-        // for (auto [model_, index_] : model_index)
-        // {
-        //     ROS_INFO_STREAM ("\t" << model_ << " : " << index_);
-        // }
-    // } 
+        // Print models
+        ROS_INFO_STREAM ("Models :");
+        for (auto model_ : models)
+        {
+            ROS_INFO_STREAM ("\t" << model_.name );
+        }
+
+        // Print the map
+        ROS_INFO_STREAM ("Model index mapping :");
+        for (auto [model_, index_] : model_index)
+        {
+            ROS_INFO_STREAM ("\t" << model_ << " : " << index_);
+        }
+    } 
 }
 
 void DiffDriveGazeboRos::Reset()

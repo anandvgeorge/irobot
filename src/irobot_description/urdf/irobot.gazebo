@@ -17,6 +17,7 @@
 			<robotBaseFrame>chassis</robotBaseFrame>
 		</plugin> -->
 		<plugin name="diff_drive_gazebo_ros" filename="libdiff_drive_gazebo_ros.so" >
+			<targetModel>cricket_ball</targetModel>
 			<velocityTopic>cmd_vel</velocityTopic>
 			<modelStateTopic>gazebo/model_states</modelStateTopic>
 		</plugin>
