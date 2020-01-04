@@ -11,6 +11,7 @@
 #include <tf/tf.h>
 
 #include <ros/ros.h>
+#include <ros/console.h>
 
 namespace gazebo
 {
@@ -38,6 +39,10 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     gazebo_ros_->isInitialized();
 
     robot = _sdf->GetParent()->Get<std::string>("name");
+
+    // Set log level
+    if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info) ) 
+        ros::console::notifyLoggerLevelsChanged();
 
     gazebo_ros_->getParameter<std::string> ( velocity_topic_, "velocityTopic", "cmd_vel" );
     gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
@@ -89,23 +94,23 @@ void DiffDriveGazeboRos::UpdateChild()
 void DiffDriveGazeboRos::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG ("Mutex locked for getPose");
+    ROS_DEBUG ("::: Mutex locked for getPose :::");
 
     // Get pose of the robot and target
     std::vector<geometry_msgs::Pose> pose = msg_.pose;
 
     if (!models.empty())
     {
-        // ROS_INFO_STREAM ("====== Get pose for each model ======");
+        ROS_DEBUG_STREAM ("====== Get pose for each model ======");
         for (int i = 0; i < models.size(); i++)
         {
-            // ROS_INFO_STREAM ("Get pose of " << model_.name);
+            ROS_DEBUG_STREAM ("Get pose of " << models[i].name);
 
             // Iterator for search
             auto search = model_index.find(models[i].name);
             if (search != model_index.end())
             {
-                // ROS_INFO_STREAM ("index of " << models[i].name << " is " << search->second);
+                ROS_DEBUG_STREAM ("index of " << models[i].name << " is " << search->second);
             }
             else
             {
@@ -134,7 +139,7 @@ void DiffDriveGazeboRos::getPose()
     // Print pose of each model
     for (auto model_ : models)
     {
-        ROS_INFO_STREAM ("Pose of " << model_.name << " is " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+        ROS_DEBUG_STREAM ("Pose of " << model_.name << " is " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
     }
   
 }
@@ -148,7 +153,7 @@ void DiffDriveGazeboRos::publishVelocity ()
 void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG ("Mutex locked for modelStateCallback");
+    ROS_DEBUG ("::: Mutex locked for modelStateCallback :::");
 
     msg_ = *_msg;
     
