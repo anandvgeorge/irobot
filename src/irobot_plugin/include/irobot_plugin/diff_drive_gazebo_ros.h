@@ -62,6 +62,7 @@ namespace gazebo {
 
       std::vector <DiffDriveGazeboRos::model> models;
       std::map <std::string, int> model_index;
+      std::vector <std::string> relevant_models;
 
       boost::mutex lock;
 

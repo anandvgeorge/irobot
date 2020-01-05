@@ -48,6 +48,12 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
     gazebo_ros_->getParameter<std::string> ( model_state_topic_, "modelStateTopic", "gazebo/model_states" );
     gazebo_ros_->getParameter<std::string> ( target, "targetModel", "cricket_ball" );
 
+    // Set the relevant models : robot and target
+    auto it = relevant_models.begin();
+    it = relevant_models.insert(it, robot);
+    relevant_models.insert(it, target);
+    ROS_INFO_NAMED("diff_drive", "%s: Relevant models are %s and %s", gazebo_ros_->info(), relevant_models[0].c_str(), relevant_models[1].c_str());
+
     alive_ = true;
 
     ROS_INFO_NAMED("diff_drive", "%s: Try to subscribe to %s", gazebo_ros_->info(), model_state_topic_.c_str());
@@ -94,14 +100,14 @@ void DiffDriveGazeboRos::UpdateChild()
 void DiffDriveGazeboRos::getPose()
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG ("::: Mutex locked for getPose :::");
+    // ROS_DEBUG ("::: Mutex locked for getPose :::");
 
     // Get pose of the robot and target
     std::vector<geometry_msgs::Pose> pose = msg_.pose;
 
     if (!models.empty())
     {
-        ROS_DEBUG_STREAM ("====== Get pose for each model ======");
+        // ROS_DEBUG_STREAM ("====== Get pose for each model ======");
         for (int i = 0; i < models.size(); i++)
         {
             ROS_DEBUG_STREAM ("Get pose of " << models[i].name);
@@ -110,36 +116,34 @@ void DiffDriveGazeboRos::getPose()
             auto search = model_index.find(models[i].name);
             if (search != model_index.end())
             {
-                ROS_DEBUG_STREAM ("index of " << models[i].name << " is " << search->second);
+                // Get pose
+                models[i].pose = pose.at(search->second);
+
+                // Calculate yaw and assign to Pose2D pos
+                tf::Quaternion q(
+                    models[i].pose.orientation.x,
+                    models[i].pose.orientation.y,
+                    models[i].pose.orientation.z,
+                    models[i].pose.orientation.w);
+                tf::Matrix3x3 m(q);
+                double roll, pitch, yaw;
+                m.getRPY(roll, pitch, yaw);
+
+                models[i].pos.x = models[i].pose.orientation.x;
+                models[i].pos.y = models[i].pose.orientation.y;
+                models[i].pos.theta = yaw;
             }
             else
             {
                 ROS_ERROR_STREAM ("Model index not mapped");
             }
-            
-            // Get pose
-            models[i].pose = pose.at(search->second);
-
-            // Calculate yaw and assign to Pose2D pos
-            tf::Quaternion q(
-                models[i].pose.orientation.x,
-                models[i].pose.orientation.y,
-                models[i].pose.orientation.z,
-                models[i].pose.orientation.w);
-            tf::Matrix3x3 m(q);
-            double roll, pitch, yaw;
-            m.getRPY(roll, pitch, yaw);
-
-            models[i].pos.x = models[i].pose.orientation.x;
-            models[i].pos.y = models[i].pose.orientation.y;
-            models[i].pos.theta = yaw;
         }
     }
 
     // Print pose of each model
     for (auto model_ : models)
     {
-        ROS_DEBUG_STREAM ("Pose of " << model_.name << " is " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+        ROS_INFO_STREAM_THROTTLE (1,"Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
     }
   
 }
@@ -153,7 +157,7 @@ void DiffDriveGazeboRos::publishVelocity ()
 void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
 {
     boost::mutex::scoped_lock scoped_lock ( lock );
-    ROS_DEBUG ("::: Mutex locked for modelStateCallback :::");
+    // ROS_DEBUG ("::: Mutex locked for modelStateCallback :::");
 
     msg_ = *_msg;
     
@@ -170,8 +174,10 @@ void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::Co
             if (!success)
                 ROS_ERROR ("Model index mapping failed");
             
-            // Add models to the models vector
-            it = models.insert(it, {name[i]});
+            // Add models to the models vector if it is in relevant models
+            if (std::find (relevant_models.begin(), relevant_models.end(), name[i]) != relevant_models.end())
+                it = models.insert(it, {name[i]});
+            else ROS_INFO_STREAM ( name[i] << " not added to the models vector");
         }
 
         // Print models
