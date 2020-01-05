@@ -9,6 +9,7 @@
 // #include <ignition/math/Vector3.hh>
 #include <sdf/sdf.hh>
 #include <tf/tf.h>
+#include <cmath>
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -108,20 +109,32 @@ void DiffDriveGazeboRos::UpdateChild()
     // PID coeffs
     kP = 0.3;
 
-    // find desired angle
-    theta_desired = atan2( (models[TARGET].pos.y - models[ROBOT].pos.y), (models[TARGET].pos.x - models[ROBOT].pos.x) );
-
-    // Get error
-    theta_error = theta_desired - models[ROBOT].pos.theta;
-
-    ROS_DEBUG_STREAM_THROTTLE (0.1, "ROBOT: " << models[ROBOT].pos.x << " " << models[ROBOT].pos.y << "\tTARGET: " << models[TARGET].pos.x << " " << models[TARGET].pos.y << "\n\t\t\t\t\t\tANGLE: heading:" <<  models[ROBOT].pos.theta << "\tdesired: " << theta_desired << "\terror: " << theta_error);
-
-    // calculate the Twist with constant linear velocity
-
     geometry_msgs::Twist velocity;
-    velocity.linear.x = vel;
-    velocity.angular.z = kP * theta_error;
 
+    // Stop robot if it is very near the target
+    const float offset = 0.3;
+
+    if ( std::abs(models[TARGET].pos.y - models[ROBOT].pos.y) < offset and std::abs(models[TARGET].pos.x - models[ROBOT].pos.x) < offset )
+    {
+        ROS_INFO_STREAM_THROTTLE (0.1, "Robot near the target, stopping robot");
+        velocity.linear.x = 0;
+        velocity.angular.z = 0;
+    }
+    else
+    {
+        // find desired angle
+        theta_desired = atan2( (models[TARGET].pos.y - models[ROBOT].pos.y), (models[TARGET].pos.x - models[ROBOT].pos.x) );
+
+        // Get error
+        theta_error = theta_desired - models[ROBOT].pos.theta;
+
+        ROS_DEBUG_STREAM_THROTTLE (0.1, "ROBOT: " << models[ROBOT].pos.x << " " << models[ROBOT].pos.y << "\tTARGET: " << models[TARGET].pos.x << " " << models[TARGET].pos.y << "\n\t\t\t\t\t\tANGLE: heading:" <<  models[ROBOT].pos.theta << "\tdesired: " << theta_desired << "\terror: " << theta_error);
+
+        // calculate the Twist with constant linear velocity
+        velocity.linear.x = vel;
+        velocity.angular.z = kP * theta_error;
+    }
+   
     publishVelocity(velocity);
 
 }
@@ -172,7 +185,7 @@ void DiffDriveGazeboRos::getPose()
     // Print pose of each model
     for (auto model_ : models)
     {
-        ROS_DEBUG_STREAM ("Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+        ROS_INFO_STREAM_THROTTLE (0.1, "Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
     }
   
 }
@@ -180,7 +193,7 @@ void DiffDriveGazeboRos::getPose()
 void DiffDriveGazeboRos::publishVelocity ( const geometry_msgs::Twist _vel )
 {
     geometry_msgs::Twist velocity = _vel;
-    ROS_INFO_STREAM_THROTTLE (1,"Publishing velocity " << velocity.linear.x << "\t" << velocity.angular.z);
+    ROS_DEBUG_STREAM_THROTTLE (1,"Publishing velocity " << velocity.linear.x << "\t" << velocity.angular.z);
     velocity_publisher_.publish ( velocity );
 }
 
