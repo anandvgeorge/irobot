@@ -10,7 +10,7 @@
 
 // ROS
 #include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Pose2D.h>
 #include <gazebo_msgs/ModelStates.h>
 #include <gazebo_msgs/GetModelState.h>
@@ -39,7 +39,7 @@ namespace gazebo {
 
     private:
       void getPose();
-      void publishVelocity();
+      void publishVelocity( const geometry_msgs::Twist _vel );
       void modelStateCallback( const gazebo_msgs::ModelStates::ConstPtr& _msg );
 
       GazeboRosPtr gazebo_ros_;
@@ -70,6 +70,11 @@ namespace gazebo {
       std::string model_state_topic_;
       std::string robot;
       std::string target;
+
+      // PID
+      float theta_desired;
+      float theta_error;
+      float kP;
 
       // Custom Callback Queue
       ros::CallbackQueue queue_;

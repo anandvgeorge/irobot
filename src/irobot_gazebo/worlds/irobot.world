@@ -13,7 +13,7 @@
 
 		<include>
 			<uri>model://cricket_ball</uri>
-			<pose> 1 2 0 0 0 0 </pose>
+			<pose> 1 -5 0 0 0 0 </pose>
 		</include>
 
 		<gui fullscreen='0'>

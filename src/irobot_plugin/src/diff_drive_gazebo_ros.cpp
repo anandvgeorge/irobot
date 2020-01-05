@@ -16,10 +16,12 @@
 namespace gazebo
 {
 
-enum {
-    ROBOT,
-    TARGET,
-};
+// enum object {
+//     ROBOT,
+//     TARGET,
+// };
+
+int ROBOT, TARGET;
 
 DiffDriveGazeboRos::DiffDriveGazeboRos() {}
 
@@ -89,11 +91,38 @@ void DiffDriveGazeboRos::Load ( physics::ModelPtr _parent, sdf::ElementPtr _sdf 
 
 void DiffDriveGazeboRos::UpdateChild()
 {
-
-    publishVelocity();
-
     // Update the pose data from the simulator
     getPose();
+
+    if (models.empty())
+    {
+        ROS_WARN_STREAM ("NO ROBOT AND TARGET DEFINED");
+        return;
+    }
+    // PID?
+    // ROS_INFO_STREAM ("ROBOT: " << models[ROBOT].name << "\tTARGET: " << models[TARGET].name);
+
+    // Constant linear velocity
+    const float vel = 0.5;
+
+    // PID coeffs
+    kP = 0.3;
+
+    // find desired angle
+    theta_desired = atan2( (models[TARGET].pos.y - models[ROBOT].pos.y), (models[TARGET].pos.x - models[ROBOT].pos.x) );
+
+    // Get error
+    theta_error = theta_desired - models[ROBOT].pos.theta;
+
+    ROS_DEBUG_STREAM_THROTTLE (0.1, "ROBOT: " << models[ROBOT].pos.x << " " << models[ROBOT].pos.y << "\tTARGET: " << models[TARGET].pos.x << " " << models[TARGET].pos.y << "\n\t\t\t\t\t\tANGLE: heading:" <<  models[ROBOT].pos.theta << "\tdesired: " << theta_desired << "\terror: " << theta_error);
+
+    // calculate the Twist with constant linear velocity
+
+    geometry_msgs::Twist velocity;
+    velocity.linear.x = vel;
+    velocity.angular.z = kP * theta_error;
+
+    publishVelocity(velocity);
 
 }
 
@@ -129,8 +158,8 @@ void DiffDriveGazeboRos::getPose()
                 double roll, pitch, yaw;
                 m.getRPY(roll, pitch, yaw);
 
-                models[i].pos.x = models[i].pose.orientation.x;
-                models[i].pos.y = models[i].pose.orientation.y;
+                models[i].pos.x = models[i].pose.position.x;
+                models[i].pos.y = models[i].pose.position.y;
                 models[i].pos.theta = yaw;
             }
             else
@@ -143,15 +172,16 @@ void DiffDriveGazeboRos::getPose()
     // Print pose of each model
     for (auto model_ : models)
     {
-        ROS_INFO_STREAM_THROTTLE (1,"Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+        ROS_DEBUG_STREAM ("Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
     }
   
 }
 
-void DiffDriveGazeboRos::publishVelocity ()
+void DiffDriveGazeboRos::publishVelocity ( const geometry_msgs::Twist _vel )
 {
-
-    // velocity_publisher_.publish ( velocity_ );
+    geometry_msgs::Twist velocity = _vel;
+    ROS_INFO_STREAM_THROTTLE (1,"Publishing velocity " << velocity.linear.x << "\t" << velocity.angular.z);
+    velocity_publisher_.publish ( velocity );
 }
 
 void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::ConstPtr& _msg )
@@ -162,7 +192,7 @@ void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::Co
     msg_ = *_msg;
     
     // Map model index
-    if (models.empty()) // Change the logic to check for extra models from the gazebo (there will be extra spawning!)
+    if (models.empty())
     {
         std::vector<std::string> name = msg_.name;
         auto it = models.begin(); // iterator
@@ -180,11 +210,17 @@ void DiffDriveGazeboRos::modelStateCallback ( const gazebo_msgs::ModelStates::Co
             else ROS_INFO_STREAM ( name[i] << " not added to the models vector");
         }
 
-        // Print models
+        // Print models, also correct the enum values
         ROS_INFO_STREAM ("Models :");
-        for (auto model_ : models)
+        for (int i=0; i<models.size(); i++)
         {
-            ROS_INFO_STREAM ("\t" << model_.name );
+            // Assign correct enum values
+            if (models[i].name == robot)
+                ROBOT = i;
+            else if (models[i].name == target)
+                TARGET = i;
+            
+            ROS_INFO_STREAM ("\t" << models[i].name );
         }
 
         // Print the map
