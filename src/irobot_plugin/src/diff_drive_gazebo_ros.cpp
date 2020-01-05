@@ -9,7 +9,7 @@
 // #include <ignition/math/Vector3.hh>
 #include <sdf/sdf.hh>
 #include <tf/tf.h>
-#include <cmath>
+// #include <cmath>
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -107,7 +107,7 @@ void DiffDriveGazeboRos::UpdateChild()
     const float vel = 0.5;
 
     // PID coeffs
-    kP = 0.3;
+    kP = 0.5;
 
     geometry_msgs::Twist velocity;
 
@@ -116,7 +116,7 @@ void DiffDriveGazeboRos::UpdateChild()
 
     if ( std::abs(models[TARGET].pos.y - models[ROBOT].pos.y) < offset and std::abs(models[TARGET].pos.x - models[ROBOT].pos.x) < offset )
     {
-        ROS_INFO_STREAM_THROTTLE (0.1, "Robot near the target, stopping robot");
+        ROS_DEBUG_STREAM_THROTTLE (0.1, "Robot near the target, stopping robot");
         velocity.linear.x = 0;
         velocity.angular.z = 0;
     }
@@ -127,8 +127,10 @@ void DiffDriveGazeboRos::UpdateChild()
 
         // Get error
         theta_error = theta_desired - models[ROBOT].pos.theta;
+        // Adjust it between (-pi, pi]
+        theta_error = atan2 ( sin(theta_error), cos(theta_error));
 
-        ROS_DEBUG_STREAM_THROTTLE (0.1, "ROBOT: " << models[ROBOT].pos.x << " " << models[ROBOT].pos.y << "\tTARGET: " << models[TARGET].pos.x << " " << models[TARGET].pos.y << "\n\t\t\t\t\t\tANGLE: heading:" <<  models[ROBOT].pos.theta << "\tdesired: " << theta_desired << "\terror: " << theta_error);
+        ROS_INFO_STREAM_THROTTLE (0.1, "ROBOT: " << models[ROBOT].pos.x << " " << models[ROBOT].pos.y << "\tTARGET: " << models[TARGET].pos.x << " " << models[TARGET].pos.y << "\n\t\t\t\t\t\tANGLE: heading:" <<  models[ROBOT].pos.theta << "\tdesired: " << theta_desired << "\terror: " << theta_error);
 
         // calculate the Twist with constant linear velocity
         velocity.linear.x = vel;
@@ -185,7 +187,7 @@ void DiffDriveGazeboRos::getPose()
     // Print pose of each model
     for (auto model_ : models)
     {
-        ROS_INFO_STREAM_THROTTLE (0.1, "Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
+        ROS_DEBUG_STREAM_THROTTLE (0.1, "Pose of " << model_.name << " : " << model_.pos.x << "\t" << model_.pos.y << "\t" << model_.pos.theta);
     }
   
 }
