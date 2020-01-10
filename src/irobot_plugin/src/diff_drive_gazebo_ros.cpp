@@ -1,26 +1,13 @@
-// #include <algorithm>
-// #include <assert.h>
-
 #include <irobot_plugin/diff_drive_gazebo_ros.h>
 
-// #include <ignition/math/Angle.hh>
-// #include <ignition/math/Pose3.hh>
-// #include <ignition/math/Quaternion.hh>
-// #include <ignition/math/Vector3.hh>
 #include <sdf/sdf.hh>
 #include <tf/tf.h>
-// #include <cmath>
 
 #include <ros/ros.h>
 #include <ros/console.h>
 
 namespace gazebo
 {
-
-// enum object {
-//     ROBOT,
-//     TARGET,
-// };
 
 int ROBOT, TARGET;
 
@@ -100,7 +87,6 @@ void DiffDriveGazeboRos::UpdateChild()
         ROS_WARN_STREAM ("NO ROBOT AND TARGET DEFINED");
         return;
     }
-    // PID?
     // ROS_INFO_STREAM ("ROBOT: " << models[ROBOT].name << "\tTARGET: " << models[TARGET].name);
 
     // Constant linear velocity

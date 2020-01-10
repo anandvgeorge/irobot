@@ -56,8 +56,8 @@ include
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
 
-add_library(diff_drive_pid src/diff_drive_pid.cpp)
-target_link_libraries(diff_drive_pid ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
+# add_library(diff_drive_pid src/diff_drive_pid.cpp)
+# target_link_libraries(diff_drive_pid ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 add_library(gazebo_ros_utils src/gazebo_ros_utils.cpp)
 target_link_libraries(gazebo_ros_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
@@ -66,7 +66,7 @@ add_library(diff_drive_gazebo_ros src/diff_drive_gazebo_ros.cpp)
 target_link_libraries(diff_drive_gazebo_ros gazebo_ros_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 install(TARGETS
-  diff_drive_pid
+  # diff_drive_pid
   diff_drive_gazebo_ros
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
